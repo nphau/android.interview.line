@@ -1,0 +1,12 @@
+dependencies {
+
+    api deps.rxjava2
+    api deps.rx_android
+
+    // DEBUG: Facebook stetho
+    api 'com.facebook.stetho:stetho:1.5.1'
+    api('com.facebook.stetho:stetho-okhttp3:1.5.1') {
+        exclude group: 'com.facebook.stetho', module: 'stetho'
+        exclude group: 'com.squareup.okhttp3', module: 'okhttp'
+    }
+}

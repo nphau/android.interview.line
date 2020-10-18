@@ -1,0 +1,42 @@
+buildscript {
+    apply from: 'linecorp-core/versions.gradle'
+    addRepos(repositories)
+    dependencies {
+        classpath "com.android.tools.build:gradle:${versions.android_gradle_plugin}"
+        classpath deps.kotlin.plugin
+        classpath deps.kotlin.allopen
+        classpath deps.navigation.safe_args_plugin
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$versions.kotlin_version"
+    }
+}
+repositories {
+    google()
+    jcenter()
+}
+allprojects {
+    addRepos(repositories)
+    afterEvaluate {
+        tasks.withType(JavaCompile.class) {
+            options.compilerArgs << "-Xmaxerrs" << "10000"
+        }
+    }
+}
+task clean(type: Delete) {
+    println " --> LOOKING FOR 'build' folders to delete ..."
+    delete rootProject.buildDir
+    println " --> REMOVED 'build' folders completely"
+}
+
+task zipAll(type: Zip) {
+    archiveBaseName = rootProject.name
+    from(rootDir) {
+        exclude '**/.idea/**'
+        exclude '**/build/**'
+        exclude '.gradle/**'
+        exclude '**/*.iml'
+        exclude '**/*.dll'
+        exclude '**/*.so'
+        exclude '**/local.properties'
+    }
+    destinationDirectory = buildDir
+}

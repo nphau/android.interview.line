@@ -1,0 +1,9 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
+apply plugin: 'kotlin-android-extensions'
+
+apply from: './shared_dependencies.gradle'
+apply from: './dagger_dependencies.gradle'
+apply from: './libs_dependencies.gradle'
+apply from: './network_dependencies.gradle'

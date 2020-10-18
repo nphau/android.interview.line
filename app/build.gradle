@@ -1,0 +1,65 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
+apply plugin: 'kotlin-allopen'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'androidx.navigation.safeargs.kotlin'
+
+apply from: '../artifacts.gradle'
+apply from: '../shared_dependencies.gradle'
+
+android {
+
+    compileSdkVersion build_versions.target_sdk
+
+    defaultConfig {
+        applicationId "com.linecorp.interview.movie.app"
+        minSdkVersion build_versions.min_sdk
+        targetSdkVersion build_versions.target_sdk
+        versionCode 1
+        versionName "1.0.0"
+        multiDexEnabled true
+        vectorDrawables.useSupportLibrary = true
+    }
+
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            debuggable false
+            resValue("string", "app_name", "Movie App")
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            minifyEnabled false
+            debuggable true
+            applicationIdSuffix ".dev"
+            resValue("string", "app_name", "Movie App DEV")
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = JavaVersion.VERSION_1_8
+    }
+    androidExtensions {
+        experimental = true
+    }
+    // For kotlin debug
+    kapt {
+        javacOptions {
+            option("-Xmaxerrs", 2000)
+        }
+    }
+    buildFeatures {
+        dataBinding = true
+        viewBinding = true
+    }
+}
+
+dependencies {
+    implementation project(path: ':linecorp-core')
+}

@@ -1,0 +1,2 @@
+apply from: '../linecorp-core/shared_dependencies.gradle'
+apply from: '../linecorp-core/dagger_dependencies.gradle'

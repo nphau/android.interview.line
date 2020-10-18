@@ -1,0 +1,82 @@
+dependencies {
+
+    // Room
+    api deps.room.runtime
+    api deps.room.rxjava2
+    kapt deps.room.compiler
+
+    // Android X
+    implementation deps.constraint_layout
+    implementation deps.support.material
+    implementation deps.support.swipelayout
+    implementation deps.support.app_compat
+    implementation deps.support.fragment
+    implementation 'androidx.cardview:cardview:1.0.0'
+
+    // Kotlin
+    api deps.kotlin.stdlib
+    api(deps.support.core_ktx) {
+        exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib'
+        exclude group: 'androidx.annotation', module: 'annotation'
+        exclude group: 'androidx.core', module: 'core'
+    }
+
+    // Navigation
+    implementation deps.navigation.fragment_ktx
+    implementation deps.navigation.runtime_ktx
+    implementation deps.support.fragment_runtime_ktx
+    implementation(deps.navigation.ui_ktx) {
+        exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib'
+    }
+    implementation deps.arch_core.runtime
+
+    // androidx.paging
+    api deps.paging_ktx
+    api deps.paging_common
+    api deps.paging_rxjava2
+
+    api deps.paging_ktx_v2
+
+    // Lifecycle
+    api deps.lifecycle.runtime
+    api(deps.lifecycle.extensions) {
+        exclude group: 'androidx.lifecycle', module: 'lifecycle-runtime'
+        exclude group: 'androidx.arch.core', module: 'core-common'
+        exclude group: 'androidx.fragment', module: 'fragment'
+        exclude group: 'androidx.arch.core', module: 'core-runtime'
+    }
+    api deps.lifecycle.reactivestreams
+    api deps.lifecycle.java8
+    api deps.lifecycle.viewmodel_ktx
+
+    api deps.jakewharton.rxbinding3
+    api deps.preference.ktx
+
+    // LOGGER: Timber
+    api deps.timber
+
+    // ANKO
+    api deps.anko.alls
+
+    // Work manager
+    api(deps.work.runtime_ktx) {
+        exclude group: 'com.google.guava', module: 'listenablefuture'
+    }
+
+    api deps.jakewharton.threetenabp
+
+    // Multi dex
+    api deps.multidex
+
+    // Permissions
+    api(deps.permissionsdispatcher) {
+        exclude group: 'androidx.core', module: 'core'
+        exclude group: 'androidx.fragment', module: 'fragment'
+        exclude group: 'androidx.collection', module: 'collection'
+    }
+    kapt deps.permissionsdispatcher_processor
+    // Shimmer loading
+    api 'com.facebook.shimmer:shimmer:0.5.0'
+    api 'androidx.recyclerview:recyclerview:1.2.0-alpha06'
+    api 'com.uber.rxdogtag:rxdogtag:1.0.0'
+}

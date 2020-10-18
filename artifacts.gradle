@@ -1,0 +1,8 @@
+android.applicationVariants.all { variant ->
+    variant.outputs.all {
+        def flavor = variant.name
+        def versionName = variant.versionName
+        def date = new Date().format("yyyy.MM.dd_HHmmssSSS")
+        outputFileName = "Movie_App${flavor}_v${versionName}_${date}.apk"
+    }
+}
