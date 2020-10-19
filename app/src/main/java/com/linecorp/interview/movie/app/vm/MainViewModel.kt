@@ -3,7 +3,6 @@ package com.linecorp.interview.movie.app.vm
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.linecorp.android.extensions.addTo
-import com.linecorp.android.libs.download.RxDownload
 import com.linecorp.android.vm.CoreViewModel
 import com.linecorp.interview.movie.app.data.model.Movie
 import com.linecorp.interview.movie.app.domain.MovieRepository

@@ -2,54 +2,38 @@ package com.linecorp.android.libs.imageloader
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.Color
 import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.ColorDrawable
-import android.graphics.drawable.TransitionDrawable
-import android.os.Environment
 import android.widget.ImageView
 import com.linecorp.android.extensions.applyFlowableIoScheduler
-import com.linecorp.android.extensions.hash
 import com.linecorp.android.libs.cache.DiskLruCache
 import com.linecorp.android.libs.cache.editor
 import com.linecorp.android.libs.cache.openAs
 import com.linecorp.android.libs.cache.snapshot
-import com.linecorp.android.libs.download.RxDownload
-import io.reactivex.Observable
-import io.reactivex.disposables.Disposable
-import io.reactivex.schedulers.Schedulers
+import io.reactivex.BackpressureStrategy
+import io.reactivex.Flowable
 import timber.log.Timber
 import java.io.*
-import java.util.*
+import java.net.HttpURLConnection
+import java.net.URL
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.Condition
 import java.util.concurrent.locks.ReentrantLock
 
-class DiskLruLoader(context: Context) : ImageCacheBehavior {
+class DiskLruLoader(context: Context) : ImageCaching(context) {
 
     companion object {
         internal const val DISK_CACHE_INDEX = 0
-        internal val TAG = DiskLruLoader::class.java.name
         internal val DISK_CACHE_SIZE = CacheStrategy.DISK.cacheSize()
-        internal val COMPRESS_FORMAT = CacheStrategy.DISK.compressFormat()
-        internal val COMPRESS_QUANTITY = CacheStrategy.DISK.compressQuantity()
         internal const val DISK_CACHE_SUB_DIRECTORY = "thumbnails"
-        fun log(error: Throwable) = Timber.tag(TAG).e(error)
     }
 
-    private var resource = context.resources
-
     private var mDiskCacheStarting = true
-    private var mDownloadDispose: Disposable? = null
     private val mDiskCacheLock = ReentrantLock()
     private var mDiskLruCache: DiskLruCache? = null
     private var cacheDir: File = getDiskCacheDir(context, DISK_CACHE_SUB_DIRECTORY)
     private val diskCacheLockCondition: Condition = mDiskCacheLock.newCondition()
-    private val imageViews = Collections.synchronizedMap(WeakHashMap<ImageView, String>())
-    private var mCallBack: ((Long) -> Unit)? = null
 
     init {
-        // Initialize disk cache on background thread
         initCache()
     }
 
@@ -75,8 +59,6 @@ class DiskLruLoader(context: Context) : ImageCacheBehavior {
         }
     }
 
-    override fun key(imageUrl: String) = imageUrl.hash()
-
     override fun addToCache(imageUrl: String, bitmap: BitmapDrawable) {
         val key = key(imageUrl)
         // Also add to disk cache
@@ -87,7 +69,7 @@ class DiskLruLoader(context: Context) : ImageCacheBehavior {
                 snapshot?.getInputStream(DISK_CACHE_INDEX)?.close()
                     ?: mDiskLruCache?.editor(key)?.let { editor ->
                         outputStream = editor.newOutputStream(DISK_CACHE_INDEX)
-                        bitmap.bitmap.compress(COMPRESS_FORMAT, COMPRESS_QUANTITY, outputStream)
+                        bitmap.bitmap.compress(compressFormat(), compressQuantity(), outputStream)
                         editor.commit()
                         outputStream?.close()
                     }
@@ -151,7 +133,7 @@ class DiskLruLoader(context: Context) : ImageCacheBehavior {
 
     override fun clear() {
         synchronized(mDiskCacheLock) {
-            mDownloadDispose?.dispose()
+            disposeDownload()
             mDiskCacheStarting = true
             if (mDiskLruCache != null && !mDiskLruCache!!.isClosed) {
                 try {
@@ -167,7 +149,7 @@ class DiskLruLoader(context: Context) : ImageCacheBehavior {
 
     override fun flush() {
         synchronized(mDiskCacheLock) {
-            mDownloadDispose?.dispose()
+            disposeDownload()
             if (mDiskLruCache != null) {
                 try {
                     mDiskLruCache?.flush()
@@ -180,7 +162,7 @@ class DiskLruLoader(context: Context) : ImageCacheBehavior {
 
     override fun close() {
         synchronized(mDiskCacheLock) {
-            mDownloadDispose?.dispose()
+            disposeDownload()
             if (mDiskLruCache != null) {
                 try {
                     if (!mDiskLruCache!!.isClosed) {
@@ -195,9 +177,7 @@ class DiskLruLoader(context: Context) : ImageCacheBehavior {
     }
 
     override fun load(imageView: ImageView, imageUrl: String) {
-
         imageView.setImageResource(0)
-        imageViews[imageView] = imageUrl
         val bitmap = getFromCache(imageUrl)
         // If the bitmap was processed and the image cache is available, then add the processed
         // bitmap to the cache for future use. Note we don't check if the task was cancelled
@@ -207,16 +187,11 @@ class DiskLruLoader(context: Context) : ImageCacheBehavior {
             display(imageUrl, imageView, bitmap)
             return
         }
-
         val key = key(imageUrl)
         mDiskLruCache?.editor(key)?.let { editor ->
-            val interval = Observable.interval(100, TimeUnit.MILLISECONDS, Schedulers.io())
-            val download = RxDownload.download(
-                imageUrl, editor.newOutputStream(DISK_CACHE_INDEX)
-            )
-//                mDownloadDispose =
-//                    Observable.zip(download, interval, { bytes: Long, _: Long -> bytes })
-            download.compose(applyFlowableIoScheduler())
+            setDownLoadDispose(download(imageUrl, editor.newOutputStream(DISK_CACHE_INDEX))
+                .throttleLast(delayEmitter(), TimeUnit.MILLISECONDS)
+                .compose(applyFlowableIoScheduler())
                 .doOnNext { this.mCallBack?.invoke(it) }
                 .doOnComplete {
                     editor.commit()
@@ -224,30 +199,66 @@ class DiskLruLoader(context: Context) : ImageCacheBehavior {
                 }
                 .doOnError { editor.abort() }
                 .subscribe({}, { Timber.e(it) })
+            )
         }
     }
 
-    /**
-     * Called when the processing is complete and the final drawable should be
-     * set on the ImageView.
-     */
-    override fun display(imageUrl: String, imageView: ImageView, bitmap: Bitmap?) {
-        val drawable = BitmapDrawable(resource, bitmap)
-        addToCache(imageUrl, drawable)
-        imageView.setImageDrawable(drawable)
-        // Transition drawable with a transparent drawable and the final drawable
-        val transitionDrawable =
-            TransitionDrawable(arrayOf(ColorDrawable(Color.TRANSPARENT), drawable))
-        // Set background to loading bitmap
-        imageView.setImageDrawable(drawable)
-        imageView.setImageDrawable(transitionDrawable)
-        transitionDrawable.startTransition(200)
-        this.mCallBack?.invoke(Long.MAX_VALUE)
+    private fun download(imageUrl: String?, outputStream: OutputStream?): Flowable<Long> {
+        if (imageUrl.isNullOrEmpty() || outputStream == null)
+            return Flowable.error(NullPointerException())
+
+        return Flowable.create({ emitter ->
+
+            var urlConnection: HttpURLConnection? = null
+            var bufferedOutputStream: BufferedOutputStream? = null
+            var bufferedInputStream: BufferedInputStream? = null
+            try {
+                val url = URL(imageUrl)
+                urlConnection = url.openConnection() as HttpURLConnection
+                bufferedOutputStream = BufferedOutputStream(outputStream, bufferSize())
+                bufferedInputStream = BufferedInputStream(urlConnection.inputStream, bufferSize())
+                var total: Long = 0
+                var count: Int
+                while (bufferedInputStream.read().also { count = it } != -1) {
+                    if (emitter.isCancelled) {
+                        bufferedInputStream.close()
+                        emitter.onError(RuntimeException("Input Stream was closed"))
+                    } else {
+                        total += count.toLong()
+                        if (count > 0) {
+                            if (!emitter.isCancelled) {
+                                emitter.onNext(total)
+                            }
+                        }
+                        bufferedOutputStream.write(count)
+                    }
+                }
+            } catch (e: Exception) {
+                if (!emitter.isCancelled) {
+                    emitter.onError(e)
+                }
+            } finally {
+                urlConnection?.disconnect()
+                try {
+                    bufferedOutputStream?.close()
+                    bufferedInputStream?.close()
+                    emitter.onComplete()
+                } catch (e: Exception) {
+                    if (!emitter.isCancelled) {
+                        emitter.onError(e)
+                    }
+                }
+            }
+        }, BackpressureStrategy.DROP)
     }
 
-    override fun onProgress(callBack: (Long) -> Unit) {
-        this.mCallBack = callBack
-    }
+    override fun delayEmitter() = 100L
+
+    override fun bufferSize(): Int = CacheStrategy.DISK.bufferSize()
+
+    override fun compressFormat() = CacheStrategy.DISK.compressFormat()
+
+    override fun compressQuantity(): Int = CacheStrategy.DISK.compressQuantity()
 
     // Creates a unique subdirectory of the designated app cache directory
     private fun getDiskCacheDir(context: Context, uniqueName: String): File {
@@ -261,9 +272,4 @@ class DiskLruLoader(context: Context) : ImageCacheBehavior {
         return File("$cachePath/$uniqueName")
     }
 
-    // Check if media is mounted or storage is built-in, if so, try and cacheStrategy external cache dir
-    // otherwise cacheStrategy internal cache dir
-    private fun isMediaMounted() =
-        Environment.MEDIA_MOUNTED == Environment.getExternalStorageState()
-                || !Environment.isExternalStorageRemovable()
 }

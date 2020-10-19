@@ -2,33 +2,29 @@ package com.linecorp.android.libs.imageloader
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.drawable.BitmapDrawable
+import androidx.core.graphics.BitmapCompat
 import java.io.BufferedInputStream
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
 import java.io.FileDescriptor
 
 object BitmapUtils {
 
-    fun previewSize(bitmap: Bitmap, width: Int, height: Int): Bitmap? {
-        if (width == 0 || height == 0) return bitmap
-        val stream = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream)
-        val inputStream = BufferedInputStream(ByteArrayInputStream(stream.toByteArray()))
-        return scaleBitmap(inputStream, width, height)
+    /**
+     * Get the size in bytes of a bitmap in a BitmapDrawable. Note that from Android 4.4 (KitKat)
+     * onward this returns the allocated memory size of the bitmap which can be larger than the
+     * actual bitmap data byte count (in the case it was re-used).
+     */
+    fun getBitmapSize(value: BitmapDrawable): Int {
+        if (value.bitmap == null)
+            return 0
+        return BitmapCompat.getAllocationByteCount(value.bitmap)
     }
 
     fun scaleBitmap(inputStream: BufferedInputStream, width: Int, height: Int): Bitmap? {
         return BitmapFactory.Options().run {
-
-            inputStream.mark(inputStream.available())
-
-            inJustDecodeBounds = true
-            BitmapFactory.decodeStream(inputStream, null, this)
-
-            inSampleSize = calculateInSampleSize(this, width, height)
-
-            inJustDecodeBounds = false
-            inputStream.reset()
+            // inJustDecodeBounds = false
+            // inSampleSize = calculateInSampleSize(this, width, height)
+            // inJustDecodeBounds = true
             BitmapFactory.decodeStream(inputStream, null, this)
         }
     }

@@ -14,8 +14,7 @@ class MovieRepositoryImpl @Inject constructor() : MovieRepository {
                         "Civil War", listOf(
                             "http://movie.phinf.naver.net/20151127_272/1448585271749MCMVs_JPEG/movie_image.jpg",
                             "http://movie.phinf.naver.net/20151127_84/1448585272016tiBsF_JPEG/movie_image.jpg",
-                            "http://movie.phinf.naver.net/20151125_36/1448434523214fPmj0_JPEG/movie_image.jpg",
-
+                            "http://movie.phinf.naver.net/20151125_36/1448434523214fPmj0_JPEG/movie_image.jpg"
                         )
                     )
                 )

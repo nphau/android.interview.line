@@ -22,6 +22,13 @@ fun <T> applyFlowableIoScheduler(): FlowableTransformer<T, T> {
     return FlowableTransformer { flowable -> flowable.applyScheduler(Schedulers.io()) }
 }
 
+private fun <T> Single<T>.applyScheduler(scheduler: Scheduler): Single<T> =
+    subscribeOn(scheduler).observeOn(AndroidSchedulers.mainThread())
+
+fun <T> applySingleIoScheduler(): SingleTransformer<T, T> {
+    return SingleTransformer { single -> single.applyScheduler(Schedulers.io()) }
+}
+
 fun Disposable.addTo(compositeDisposable: CompositeDisposable) =
     compositeDisposable.add(this)
 

@@ -8,7 +8,7 @@ import java.util.concurrent.Executors
 
 class ImageLoader private constructor(val context: Context) {
 
-    private var loader: ImageCacheBehavior? = null
+    private var loader: ImageCaching? = null
     private var executorService: ExecutorService? = null
 
     companion object : SingletonArgument<ImageLoader, Context>(::ImageLoader) {
@@ -27,10 +27,10 @@ class ImageLoader private constructor(val context: Context) {
     private fun threadPoolTags(): Pair<Int, String> {
         return when (loader) {
             is DiskLruLoader -> {
-                Pair(CacheStrategy.DISK.threadPool(), DiskLruLoader.TAG)
+                Pair(CacheStrategy.DISK.threadPool(), DiskLruLoader::class.java.name)
             }
             else -> {
-                Pair(CacheStrategy.MEMORY.threadPool(), DiskLruLoader.TAG)
+                Pair(CacheStrategy.MEMORY.threadPool(), MemLruLoader::class.java.name)
             }
         }
     }
@@ -38,7 +38,7 @@ class ImageLoader private constructor(val context: Context) {
     fun cacheStrategy(source: CacheStrategy): ImageLoader {
         loader = when (source) {
             CacheStrategy.DISK -> DiskLruLoader(context)
-            else -> DiskLruLoader(context)
+            else -> MemLruLoader(context)
         }
         // Define executor service
         val (threadPool, tag) = threadPoolTags()
