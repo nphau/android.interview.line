@@ -3,6 +3,6 @@ android.applicationVariants.all { variant ->
         def flavor = variant.name
         def versionName = variant.versionName
         def date = new Date().format("yyyy.MM.dd_HHmmssSSS")
-        outputFileName = "Movie_App${flavor}_v${versionName}_${date}.apk"
+        outputFileName = "nphau.LINE${flavor}_v${versionName}_${date}.apk"
     }
 }

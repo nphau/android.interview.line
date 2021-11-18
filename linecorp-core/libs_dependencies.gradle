@@ -11,17 +11,14 @@ android {
 
     buildTypes {
         release {
-            debuggable false
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
         debug {
-            debuggable true
             minifyEnabled false
         }
         debuggable_prod {
             initWith release
-            debuggable true
             matchingFallbacks = ['release']
         }
         staging {
@@ -49,10 +46,5 @@ android {
     }
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_1_8
-    }
-    dexOptions {
-        javaMaxHeapSize "2048M"
-        jumboMode true
-        preDexLibraries false
     }
 }

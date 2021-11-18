@@ -2,16 +2,18 @@ buildscript {
     apply from: 'linecorp-core/versions.gradle'
     addRepos(repositories)
     dependencies {
-        classpath "com.android.tools.build:gradle:${versions.android_gradle_plugin}"
-        classpath deps.kotlin.plugin
-        classpath deps.kotlin.allopen
         classpath deps.navigation.safe_args_plugin
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$versions.kotlin_version"
+        classpath "com.android.tools.build:gradle:7.0.3"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.0"
+        classpath "org.jetbrains.kotlin:kotlin-allopen:1.6.0"
+        classpath "org.sonarsource.scanner.gradle:sonarqube-gradle-plugin:2.8"
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.6.0"
     }
 }
 repositories {
     google()
     jcenter()
+    mavenCentral()
 }
 allprojects {
     addRepos(repositories)

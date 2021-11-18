@@ -14,8 +14,7 @@ dependencies {
     implementation 'androidx.cardview:cardview:1.0.0'
 
     // Kotlin
-    api deps.kotlin.stdlib
-    api(deps.support.core_ktx) {
+    api("androidx.core:core-ktx:1.7.0") {
         exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib'
         exclude group: 'androidx.annotation', module: 'annotation'
         exclude group: 'androidx.core', module: 'core'
