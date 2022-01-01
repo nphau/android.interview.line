@@ -10,6 +10,20 @@
 </a>
 
 [![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png)](#table-of-contents)
+## Documents
+
+<h4 align="center">
+<img src="attach_app_project_structure_1.png" width="30%" vspace="10" hspace="10">
+<img src="attach_app_project_structure_2.png" width="30%" vspace="10" hspace="10">
+<img src="attach_architecture_component.png" width="30%" vspace="10" hspace="10"">
+<img src="attach_clean_architecture.png" width="30%" vspace="10" hspace="10""><br>
+</h4>
+
+<h4 align="center">
+<img src="attach_image_loading_factory.png" width="30%" vspace="10" hspace="10">
+<img src="attach_image_loading_flow.png" width="30%" vspace="10" hspace="10">
+<img src="attach_throttle_last.png" width="30%" vspace="10" hspace="10""><br>
+</h4>
 
 ## 🌈 Technical Stack
 
@@ -43,14 +57,12 @@ I made an early decision to rewrite the app from scratch to bring it in line wit
 - [Retrofit](https://square.github.io/retrofit/) - type-safe HTTP client.
 - [Room](https://developer.android.com/topic/libraries/architecture/room) - The Room persistence library provides an abstraction layer over SQLite to allow for more robust database access while harnessing the full power of SQLite.
 - [Timber](https://github.com/JakeWharton/timber) - a logger with a small, extensible API which provides utility on top of Android's normal Log class.
-* [OkHttp](http://square.github.io/okhttp/)
-* [Gson](https://github.com/google/gson)
 - [Stetho](http://facebook.github.io/stetho/) - debug bridge for applications via Chrome Developer Tools.
 - [Shimmer](https://github.com/facebook/shimmer-android) - Shimmer is an Android library that provides an easy way to add a shimmer effect to any view in your Android app.
 - [Glide](https://github.com/bumptech/glide) - Glide is a fast and efficient open source media management and image loading framework for Android that wraps media decoding, memory and disk caching, and resource pooling into a simple and easy to use interface.
 
 
-[![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png)](#table-of-contents)
+![-----------------------------------------------------](https://raw.githubusercontent.com/andreasbm/readme/master/assets/lines/colored.png)
 
 ## 👇 Authors
 <p>
